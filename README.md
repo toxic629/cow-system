@@ -153,19 +153,133 @@ spring:
 docker compose up -d --build
 ```
 
-## 六、阿里云拉取镜像超时解决方案
 
-已将 Dockerfile 与 docker-compose.yml 中基础镜像统一切换为阿里云镜像源：`registry.cn-hangzhou.aliyuncs.com/library`。
+# 提示词
+你在 workspace-write 模式，必须直接创建/修改工作区文件。
 
-验证命令：
+⚠️ 重要前提
+- 当前项目根目录名为：COW SYSTEM
+- 已存在 backend/ 与 frontend/ 两个工程
+- backend/ 为 Spring Boot（Maven）
+- frontend/ 为 Vite + React + TypeScript + Ant Design
+- 不允许修改 backend/src 与 frontend/src 中任何业务代码
+- 仅补齐「部署与联调」能力
 
-```bash
-docker pull registry.cn-hangzhou.aliyuncs.com/library/mysql:8.0
-docker pull registry.cn-hangzhou.aliyuncs.com/library/nginx:1.27-alpine
-```
+========================
+🎯 目标
+========================
+在不破坏现有代码的前提下，补齐本地 Docker 一键启动能力，以及阿里云 ECS 上云部署方案。
 
-启动命令：
+========================
+📁 需要完成的事情
+========================
 
-```bash
-docker-compose up -d --build
-```
+【1】清理
+- 如果 backend/docker-compose.yml 存在，请删除
+- 后续只保留「根目录」docker-compose.yml
+
+【2】根目录新增 / 修改文件
+- docker-compose.yml（统一编排）
+- deploy/nginx.conf
+- backend/Dockerfile
+- frontend/Dockerfile（多阶段构建）
+- 根目录 README.md（部署文档）
+
+========================
+🐳 Docker 编排要求
+========================
+
+【docker-compose.yml】
+服务包括：
+- mysql:8
+- redis
+- backend
+- frontend（仅构建，产物交给 nginx）
+- nginx（唯一对外入口）
+
+网络：
+- 使用 docker compose 默认 bridge 网络
+- 服务名互通（mysql / redis / backend）
+
+端口：
+- 仅 nginx 对外暴露 80
+- 不对外暴露 3306 / 6379 / 8080
+
+数据持久化：
+- mysql 使用 volume
+- redis 使用 volume
+
+========================
+🌐 Nginx 反向代理规则
+========================
+
+- /api/*      -> backend:8080
+- /           -> frontend 构建后的静态文件
+- 支持 history 模式（SPA 刷新不 404）
+
+========================
+🧩 Frontend 约束
+========================
+
+- 生产环境 API baseURL 必须使用相对路径 /api
+- 不写死 localhost
+- 保留 VITE_API_BASE_URL（仅本地 dev 使用）
+
+========================
+📘 README.md 必须包含
+========================
+
+【一】本地一键启动
+- 前置条件：Docker + Docker Compose
+- 启动命令：
+  docker compose up -d --build
+- 验证方式：
+  - 浏览器访问 http://localhost
+  - 登录 admin / admin
+
+【二】阿里云 ECS 部署指南
+- ECS 系统建议：Alibaba Cloud Linux / Ubuntu
+- 安装 Docker 与 Docker Compose
+- 安全组配置：
+  - 必须：80
+  - 可选：443
+  - 不建议开放：3306 / 6379
+- 上传项目并启动 docker compose
+
+【三】数据库建议
+- 说明：生产环境推荐使用阿里云 RDS
+- 提供 application-prod.yml 示例
+- 使用环境变量覆盖数据库配置
+
+【四】域名与 HTTPS（可选）
+- Nginx + certbot 方案（简要）
+- 或阿里云证书方案（简要）
+
+【五】常见问题排查
+- 前端 Network Error
+- 502 Bad Gateway
+- MySQL 连接失败
+- Redis 连接失败
+- 跨域 / 反代问题
+- 容器时区问题（Asia/Shanghai）
+
+========================
+📤 输出要求
+========================
+
+1️⃣ 所有文件必须真实写入 workspace  
+2️⃣ 输出最终项目文件树  
+3️⃣ 明确给出启动命令：
+
+docker compose up -d --build
+
+========================
+⚠️ 严格禁止
+========================
+- 不得重写 backend / frontend 源码
+- 不得引入 Kubernetes
+- 不得拆分为多个 compose
+- 不得修改已有业务逻辑
+
+现在开始执行。
+docker compose up -d --build
