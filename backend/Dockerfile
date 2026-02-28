@@ -1,10 +1,10 @@
-FROM eclipse-temurin:17-jdk-jammy AS builder
+FROM registry.cn-hangzhou.aliyuncs.com/library/eclipse-temurin:17-jdk-jammy AS builder
 WORKDIR /app
 
 COPY . .
 RUN chmod +x mvnw && ./mvnw -q -DskipTests clean package
 
-FROM eclipse-temurin:17-jre-jammy
+FROM registry.cn-hangzhou.aliyuncs.com/library/eclipse-temurin:17-jre-jammy
 WORKDIR /app
 ENV TZ=Asia/Shanghai
 

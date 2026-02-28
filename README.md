@@ -152,3 +152,20 @@ spring:
 ```bash
 docker compose up -d --build
 ```
+
+## 六、阿里云拉取镜像超时解决方案
+
+已将 Dockerfile 与 docker-compose.yml 中基础镜像统一切换为阿里云镜像源：`registry.cn-hangzhou.aliyuncs.com/library`。
+
+验证命令：
+
+```bash
+docker pull registry.cn-hangzhou.aliyuncs.com/library/mysql:8.0
+docker pull registry.cn-hangzhou.aliyuncs.com/library/nginx:1.27-alpine
+```
+
+启动命令：
+
+```bash
+docker-compose up -d --build
+```
